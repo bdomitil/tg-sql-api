@@ -15,8 +15,9 @@ type tg_cache struct {
 
 type chat struct {
 	ID    int64  `json:"id"`
-	IsBot bool   `json:"isBot"`
 	Title string `json:"title"`
+	BotID int64  `json:"botID"`
+	Type  uint8  `json:"type"`
 }
 
 type user struct {
