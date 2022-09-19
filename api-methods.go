@@ -20,7 +20,7 @@ func addChatHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 		}
 		defer sql.Close()
-		sqlcheck, err := sql.Query("SELECT id FROM chat WHERE bot = ?", chat.BotID)
+		sqlcheck, err := sql.Query("SELECT * FROM chat WHERE bot = ? and id = ?", chat.BotID, chat.ID)
 		if err != nil || sqlcheck.Next() {
 			c.JSON(http.StatusOK, gin.H{"result": "Bot is already registered"})
 			return
@@ -47,7 +47,7 @@ func addChatHandler(c *gin.Context) {
 
 func listChatHandler(c *gin.Context) {
 	type response struct {
-		Id int `json:"id"`
+		Id int64 `json:"id"`
 	}
 	var res response
 	var chats []chat
@@ -62,18 +62,19 @@ func listChatHandler(c *gin.Context) {
 			return
 		}
 		defer sql.Close()
-		rows, err := sql.Query("SELECT id, title FROM tg_users WHERE bot = ?", res.Id)
+		rows, err := sql.Query("SELECT id, title, type FROM chat WHERE bot = ?", res.Id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 			return
 		}
 		for rows.Next() {
 			chat := chat{}
-			err := rows.Scan(&chat.ID, &chat.Title)
+			err := rows.Scan(&chat.ID, &chat.Title, &chat.Type)
 			if err != nil {
 				log.Println(err.Error())
 				continue
 			}
+			chat.BotID = res.Id
 			chats = append(chats, chat)
 		}
 	}
