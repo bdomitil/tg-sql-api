@@ -4,9 +4,10 @@ WORKDIR /usr/src/app
 
 
 ##  REQUIRS
-##  TTOKEN    - telegram bot token
-##  BITRIX_TOKEN  - token to acces bitrix api
-##  ADMIN_ID   -  admin's telegram chat id
+## TG_DB_PASSWD - database password for db
+## TG_DB_USER - database user 
+## TG_DB - database name
+## TG_DB_HOST - database host address
 
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify

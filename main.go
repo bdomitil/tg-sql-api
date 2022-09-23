@@ -49,7 +49,15 @@ func main() {
 	chat := router.Group("/chat")
 	{
 		chat.POST("/add/", addChatHandler)
-		chat.POST("/list/", listChatHandler)
+		chat.GET("/list/:id", listChatHandler)
+		chat.GET("/:id", getChatHandler)
+	}
+	user := router.Group("/user")
+	{
+		user.GET("/:id", getUserHandler)
+		user.GET("/list/", listUserHandler)
+		user.POST("/add/", addUserHandler)
+
 	}
 	router.Run(":3334")
 }

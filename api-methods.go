@@ -46,37 +46,125 @@ func addChatHandler(c *gin.Context) {
 }
 
 func listChatHandler(c *gin.Context) {
-	type response struct {
-		Id int64 `json:"id"`
-	}
-	var res response
+
 	var chats []chat
-	err := c.BindJSON(&res)
+	ok, id := string_to_int64(c.Params.ByName("id"))
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": "Bad request id"})
+		return
+	}
+	//Main logic
+	sql, err := tg.OpenDB()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 		return
-	} else { //Main logic
-		sql, err := tg.OpenDB()
+	}
+	defer sql.Close()
+	rows, err := sql.Query("SELECT id, title, type FROM chat WHERE bot = ?", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	} else if !rows.Next() {
+		c.JSON(http.StatusNotFound, gin.H{"result": "No such bot"})
+		return
+	}
+	for rows.Next() {
+		chat := chat{}
+		err := rows.Scan(&chat.ID, &chat.Title, &chat.Type)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
-			return
+			log.Println(err.Error())
+			continue
 		}
-		defer sql.Close()
-		rows, err := sql.Query("SELECT id, title, type FROM chat WHERE bot = ?", res.Id)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
-			return
-		}
-		for rows.Next() {
-			chat := chat{}
-			err := rows.Scan(&chat.ID, &chat.Title, &chat.Type)
-			if err != nil {
-				log.Println(err.Error())
-				continue
-			}
-			chat.BotID = res.Id
-			chats = append(chats, chat)
-		}
+		chat.BotID = id
+		chats = append(chats, chat)
 	}
 	c.JSON(http.StatusOK, chats)
+}
+
+func getChatHandler(c *gin.Context) {
+
+}
+
+func getUserHandler(c *gin.Context) {
+	var reqUser user
+	ok, id := string_to_int64(c.Params.ByName("id"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"result": "Bad id value"})
+		return
+	}
+	sql, err := tg.OpenDB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	defer sql.Close()
+	rows, err := sql.Query("SELECT username, firstname, rang, department FROM user WHERE id = ?", id)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	if !rows.Next() {
+		c.JSON(http.StatusNotFound, gin.H{"result": "No such user"})
+		return
+	}
+	err = rows.Scan(&reqUser.Username, &reqUser.Firstname, &reqUser.Rang, &reqUser.Department)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	reqUser.ID = id
+	c.JSON(http.StatusOK, reqUser)
+}
+
+func listUserHandler(c *gin.Context) {
+	var reqUsers []user
+	sql, err := tg.OpenDB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	defer sql.Close()
+
+	rows, err := sql.Query("SELECT id, username, firstname, rang, department FROM user")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	for rows.Next() {
+		newUser := user{}
+		err = rows.Scan(&newUser.ID, &newUser.Username, &newUser.Firstname, &newUser.Rang, &newUser.Department)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+			return
+		}
+		reqUsers = append(reqUsers, newUser)
+	}
+	c.JSON(http.StatusOK, reqUsers)
+}
+
+func addUserHandler(c *gin.Context) {
+	var user user
+	err := c.BindJSON(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	sql, err := tg.OpenDB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	defer sql.Close()
+	sqlres, err := sql.Exec(`INSERT INTO user (id, username, firstname, rang, department) values (?, ?, ?, ?, ?) `, user.ID, user.Username, user.Firstname, user.Rang, user.Department) //TODO check if all necessary fields present
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	af, _ := sqlres.RowsAffected()
+	if af < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"result": err.Error()})
+	}
+	c.JSON(http.StatusOK, user)
 }

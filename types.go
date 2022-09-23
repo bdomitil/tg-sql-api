@@ -21,8 +21,11 @@ type chat struct {
 }
 
 type user struct {
-	ID        int64  `json:"id"`
-	FirstName string `json:"name"`
+	ID         int64  `json:"id"`
+	Username   string `json:"username"`
+	Firstname  string `json:"firstname,omitempty`
+	Rang       int8   `json:"rang"`
+	Department string `json:"department"`
 }
 
 type taskStore interface {
