@@ -55,7 +55,7 @@ func main() {
 	user := router.Group("/user")
 	{
 		user.GET("/:id", getUserHandler)
-		user.GET("/list/", listUserHandler)
+		user.GET("/list/:botID", listUserHandler)
 		user.POST("/add/", addUserHandler)
 
 	}

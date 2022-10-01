@@ -120,6 +120,11 @@ func getUserHandler(c *gin.Context) {
 
 func listUserHandler(c *gin.Context) {
 	var reqUsers []user
+	ok, id := string_to_int64(c.Params.ByName("botID"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"result": "Bad BotId value"})
+		return
+	}
 	sql, err := tg.OpenDB()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
@@ -127,9 +132,13 @@ func listUserHandler(c *gin.Context) {
 	}
 	defer sql.Close()
 
-	rows, err := sql.Query("SELECT id, username, firstname, rang, department FROM user")
+	rows, err := sql.Query("SELECT id, username, firstname, rang, department FROM user WHERE botId = ? ", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	}
+	if !rows.Next() {
+		c.JSON(http.StatusNotFound, gin.H{"result": "No users for such botID"})
 		return
 	}
 	for rows.Next() {
@@ -139,6 +148,7 @@ func listUserHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 			return
 		}
+		newUser.BotID = id
 		reqUsers = append(reqUsers, newUser)
 	}
 	c.JSON(http.StatusOK, reqUsers)
@@ -157,7 +167,7 @@ func addUserHandler(c *gin.Context) {
 		return
 	}
 	defer sql.Close()
-	sqlres, err := sql.Exec(`INSERT INTO user (id, username, firstname, rang, department) values (?, ?, ?, ?, ?) `, user.ID, user.Username, user.Firstname, user.Rang, user.Department) //TODO check if all necessary fields present
+	sqlres, err := sql.Exec(`INSERT INTO user (id, botId, username, firstname, rang, department) values (?, ?, ?, ?, ?, ?) `, user.ID, user.BotID, user.Username, user.Firstname, user.Rang, user.Department) //TODO check if all necessary fields present
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 		return

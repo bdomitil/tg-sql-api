@@ -22,6 +22,7 @@ type chat struct {
 
 type user struct {
 	ID         int64  `json:"id"`
+	BotID      int64  `json:"botId"`
 	Username   string `json:"username"`
 	Firstname  string `json:"firstname,omitempty`
 	Rang       int8   `json:"rang"`
