@@ -14,17 +14,18 @@ type tg_cache struct {
 }
 
 type chat struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	BotID int64  `json:"botID"`
-	Type  uint8  `json:"type"`
+	ID         int64  `json:"chat_id"`
+	Title      string `json:"title"`
+	BotID      int64  `json:"botID"`
+	Type       uint8  `json:"type"`
+	Department string `json:"department"`
 }
 
 type user struct {
-	ID         int64  `json:"id"`
+	ID         int64  `json:"user_id"`
 	BotID      int64  `json:"botId"`
 	Username   string `json:"username"`
-	Firstname  string `json:"firstname,omitempty`
+	Firstname  string `json:"firstname,omitempty"`
 	Rang       int8   `json:"rang"`
 	Department string `json:"department"`
 }

@@ -20,12 +20,12 @@ func addChatHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 		}
 		defer sql.Close()
-		sqlcheck, err := sql.Query("SELECT * FROM chat WHERE bot = ? and id = ?", chat.BotID, chat.ID)
+		sqlcheck, err := sql.Query("SELECT * FROM chat WHERE bot = ? and chat_id = ?", chat.BotID, chat.ID)
 		if err != nil || sqlcheck.Next() {
 			c.JSON(http.StatusOK, gin.H{"result": "Bot is already registered"})
 			return
 		} else {
-			sqres, err := sql.Exec(`INSERT INTO chat (id, title, bot, type)  VALUES (?, ?, ?, ?)`,
+			sqres, err := sql.Exec(`INSERT INTO chat (chat_id, title, bot, type)  VALUES (?, ?, ?, ?)`,
 				chat.ID, chat.Title, chat.BotID, chat.Type)
 			if err != nil {
 				fmt.Println(err.Error())
@@ -61,12 +61,9 @@ func listChatHandler(c *gin.Context) {
 		return
 	}
 	defer sql.Close()
-	rows, err := sql.Query("SELECT id, title, type FROM chat WHERE bot = ?", id)
+	rows, err := sql.Query("SELECT chat_id, title, type FROM chat WHERE bot = ?", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
-		return
-	} else if !rows.Next() {
-		c.JSON(http.StatusNotFound, gin.H{"result": "No such bot"})
 		return
 	}
 	for rows.Next() {
@@ -78,6 +75,10 @@ func listChatHandler(c *gin.Context) {
 		}
 		chat.BotID = id
 		chats = append(chats, chat)
+	}
+	if len(chats) < 1 {
+		c.JSON(http.StatusNotFound, gin.H{"result": "No such bot"})
+		return
 	}
 	c.JSON(http.StatusOK, chats)
 }
@@ -99,7 +100,7 @@ func getUserHandler(c *gin.Context) {
 		return
 	}
 	defer sql.Close()
-	rows, err := sql.Query("SELECT username, firstname, rang, department FROM user WHERE id = ?", id)
+	rows, err := sql.Query("SELECT username, firstname, rang, department FROM user WHERE user_id = ?", id)
 	if err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
@@ -132,13 +133,9 @@ func listUserHandler(c *gin.Context) {
 	}
 	defer sql.Close()
 
-	rows, err := sql.Query("SELECT id, username, firstname, rang, department FROM user WHERE botId = ? ", id)
+	rows, err := sql.Query("SELECT user_id, username, firstname, rang, department FROM user WHERE botId = ? ", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
-		return
-	}
-	if !rows.Next() {
-		c.JSON(http.StatusNotFound, gin.H{"result": "No users for such botID"})
 		return
 	}
 	for rows.Next() {
@@ -150,6 +147,10 @@ func listUserHandler(c *gin.Context) {
 		}
 		newUser.BotID = id
 		reqUsers = append(reqUsers, newUser)
+	}
+	if len(reqUsers) < 1 {
+		c.JSON(http.StatusNotFound, gin.H{"result": "No users for such botID"})
+		return
 	}
 	c.JSON(http.StatusOK, reqUsers)
 }
@@ -167,7 +168,7 @@ func addUserHandler(c *gin.Context) {
 		return
 	}
 	defer sql.Close()
-	sqlres, err := sql.Exec(`INSERT INTO user (id, botId, username, firstname, rang, department) values (?, ?, ?, ?, ?, ?) `, user.ID, user.BotID, user.Username, user.Firstname, user.Rang, user.Department) //TODO check if all necessary fields present
+	sqlres, err := sql.Exec(`INSERT INTO user (user_id, botId, username, firstname, rang, department) values (?, ?, ?, ?, ?, ?) `, user.ID, user.BotID, user.Username, user.Firstname, user.Rang, user.Department) //TODO check if all necessary fields present
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
 		return
