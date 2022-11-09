@@ -14,7 +14,6 @@ func addChatHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"result": err.Error()})
 		return
 	}
-	log.Println("chat = ", chat)
 	ch, err := getChatByBotID(chat.Bot_id, chat.Chat_id)
 	if err != nil || ch.ID == 0 {
 		err = addChat(chat)
@@ -89,7 +88,7 @@ func getUserHandler(c *gin.Context) {
 }
 
 func listUsersHandler(c *gin.Context) {
-	ok, bot_id := string_to_int64(c.Params.ByName("botID"))
+	ok, bot_id := string_to_int64(c.Params.ByName("bot_id"))
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"result": "Bad BotId value"})
 		return

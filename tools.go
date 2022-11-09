@@ -64,7 +64,7 @@ func getAllUsers() (Users []user, err error) {
 }
 
 func getUsersByBotID(bot_id int64) (Users []user, err error) {
-	result := Db.Where("bot_id = ?", bot_id).Take(&Users)
+	result := Db.Where("bot_id = ?", bot_id).Find(&Users)
 	err = result.Error
 	return
 }
