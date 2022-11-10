@@ -150,3 +150,27 @@ func addUserHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, user)
 }
+
+func deleteChatsHandler(c *gin.Context) {
+	ok, chat_id := string_to_int64(c.Params.ByName("chat_id"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"result": "Bad id value"})
+		return
+	}
+	ok, bot_id := string_to_int64(c.Params.ByName("bot_id"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"result": "Bad id value"})
+		return
+	}
+	status, err := deleteChat(chat{Bot_id: bot_id, Chat_id: chat_id})
+	switch status {
+	case 500:
+		c.JSON(http.StatusInternalServerError, gin.H{"result": err.Error()})
+		return
+	case 200:
+		c.JSON(http.StatusOK, gin.H{"result": "success"})
+	default:
+		c.JSON(http.StatusNotFound, gin.H{"result": "fail"})
+	}
+
+}

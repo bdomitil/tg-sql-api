@@ -54,6 +54,7 @@ func main() {
 		chat.GET("/list/:id", listChatHandler)
 		chat.GET("/:bot_id/:chat_id/", getChatHandler)
 		chat.POST("/add/", addChatHandler)
+		chat.DELETE("/:bot_id/:chat_id/", deleteChatsHandler)
 	}
 	user := router.Group("/user")
 	{

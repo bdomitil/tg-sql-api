@@ -78,3 +78,18 @@ func updateUser(User user) error {
 	result := Db.Where("bot_id = ? and user_id = ?", User.Bot_id, User.User_id).Updates(User)
 	return result.Error
 }
+
+/*status 500 -error
+status 200 - success and deleted
+status 404 - not found record in db
+*/
+func deleteChat(Chat chat) (status int, err error) {
+	result := Db.Where("bot_id = ? and chat_id = ?", Chat.Bot_id, Chat.Chat_id).Delete(&Chat)
+	if result.Error != nil {
+		return 500, result.Error
+	}
+	if result.RowsAffected > 0 {
+		return 200, nil
+	}
+	return 404, errors.New("record not found")
+}
